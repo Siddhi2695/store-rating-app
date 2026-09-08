@@ -1,0 +1,25 @@
+# Node modules
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Environment files
+.env
+backend/.env
+.env.local
+.env.development.local
+.env.production.local
+
+# PostgreSQL data directory
+pg_data/
+*.log
+
+# Build output
+frontend/dist/
+frontend/dist-ssr/
+
+# IDE / OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
