@@ -3,8 +3,6 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const express = require('express');
 const cors = require('cors');
-const EmbeddedPostgres = require('embedded-postgres').default;
-const initDb = require('./config/initDb');
 
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
@@ -46,34 +44,25 @@ async function startApp() {
     try {
         console.log('Checking PostgreSQL database status...');
         const dbDir = path.join(__dirname, '..', 'pg_data');
-        const pg = new EmbeddedPostgres({
-            databaseDir: dbDir,
-            port: 5432,
-            user: 'postgres',
-            password: 'postgresPassword123!',
-            authMethod: 'trust',
-            persistent: true,
-            onLog: () => {}
-        });
-
-        try { 
-            await pg.initialise(); 
-        } catch (e) {
-            // Ignore if already initialised
-        }
-
-        try { 
-            await pg.start(); 
-            console.log('Started embedded PostgreSQL database.');
-        } catch (e) {
-            console.log('PostgreSQL database server is active.');
-        }
-
-        // Ensure tables & seed data exist
+        
         try {
-            await initDb();
+            const EmbeddedPostgres = require('embedded-postgres').default;
+            const initDb = require('./config/initDb');
+            const pg = new EmbeddedPostgres({
+                databaseDir: dbDir,
+                port: 5432,
+                user: 'postgres',
+                password: 'postgresPassword123!',
+                authMethod: 'trust',
+                persistent: true,
+                onLog: () => {}
+            });
+
+            try { await pg.initialise(); } catch (e) {}
+            try { await pg.start(); } catch (e) {}
+            try { await initDb(); } catch (e) {}
         } catch (e) {
-            console.log('DB tables and seed verified.');
+            console.log('PostgreSQL database initialization check:', e.message);
         }
 
         app.listen(PORT, () => {
@@ -84,8 +73,11 @@ async function startApp() {
         });
     } catch (err) {
         console.error('Failed to start server:', err);
-        process.exit(1);
     }
 }
 
-startApp();
+if (process.env.NODE_ENV !== 'production' || require.main === module) {
+    startApp();
+}
+
+module.exports = app;
